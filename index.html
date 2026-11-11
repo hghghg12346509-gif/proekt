@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Папа Банк - Умный учет</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #eef2f5;
+            --primary: #4361ee;
+            --plus-color: #2ecc71;
+            --minus-color: #e74c3c;
+            --text-color: #2b2d42;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            padding: 15px;
+            text-align: left;
+            font-size: 16px;
+        }
+
+        th:nth-child(1) { width: 25%; }
+        th:nth-child(2) { width: 15%; }
+        th:nth-child(3) { width: 15%; }
+        th:nth-child(4) { width: 45%; }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            background: white;
+            transition: background 0.2s;
+        }
+
+        td[contenteditable="true"]:focus {
+            outline: none;
+            background-color: #f0f8ff;
+            box-shadow: inset 0 0 5px rgba(67, 97, 238, 0.3);
+        }
+
+        td.income-text { color: var(--plus-color); }
+        td.expense-text { color: var(--minus-color); }
+
+        tr:hover td { background-color: #f9f9f9; }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.3);
+            transition: all 0.2s;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(67, 97, 238, 0.4); }
+        .btn:active { transform: translateY(0); }
+        .btn.danger { background: #ff4757; box-shadow: 0 4px 6px rgba(255, 71, 87, 0.3); }
+        .btn.danger:hover { box-shadow: 0 6px 12px rgba(255, 71, 87, 0.4); }
+
+        /* Блок с итогами */
+        .totals {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px dashed #dcdcdc;
+            flex-wrap: wrap; /* Чтобы на телефоне переносилось */
+            gap: 10px;
+        }
+
+        .total-item { text-align: center; min-width: 100px; }
+        .total-label { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .total-value { font-size: 28px; font-weight: 800; }
+
+        .value-plus { color: var(--plus-color); }
+        .value-minus { color: var(--minus-color); }
+        .value-balance { color: var(--primary); }
+
+        /* Новый блок статистики */
+        .extra-stats {
+            display: flex;
+            justify-content: space-between;
+            background: #e6e9f0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+        }
+        .stat-item span { font-weight: 800; color: var(--primary); font-size: 18px;}
+
+        @media (max-width: 500px) {
+            .totals { flex-direction: column; }
+            .extra-stats { flex-direction: column; gap: 10px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Папа Банк</h1>
+
+        <table id="bankTable">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>+</th>
+                    <th>-</th>
+                    <th>Комментарий</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Строки добавляются через JS -->
+            </tbody>
+        </table>
+
+        <div class="controls">
+            <button class="btn" onclick="addRow()">➕ Добавить строку</button>
+            <button class="btn danger" onclick="clearTable()">🗑️ Очистить всё</button>
+        </div>
+
+        <!-- Основные итоги -->
+        <div class="totals">
+            <div class="total-item">
+                <div class="total-label">Доходы (+)</div>
+                <div class="total-value value-plus" id="total-income">0</div>
+            </div>
+            <div class="total-item">
+                <div class="total-label">Расходы (-)</div>
+                <div class="total-value value-minus" id="total-expense">0</div>
+            </div>
+            <div class="total-item">
+                <div class="total-label">Остаток</div>
+                <div class="total-value value-balance" id="total-balance">0</div>
+            </div>
+        </div>
+
+        <!-- ДОПОЛНИТЕЛЬНАЯ СУММА (то, что ты просил) -->
+        <div class="extra-stats">
+            <div class="stat-item">📝 Всего записей: <span id="total-records">0</span></div>
+            <div class="stat-item">🧮 Сумма всех чисел: <span id="total-all-numbers">0</span></div>
+        </div>
+    </div>
+
+    <script>
+        const tableBody = document.getElementById('table-body');
+
+        function createRow(data = { date: '', income: '', expense: '', comment: '' }) {
+            const tr = document.createElement('tr');
+            
+            const tdDate = document.createElement('td');
+            tdDate.contentEditable = "true";
+            tdDate.textContent = data.date;
+            
+            const tdIncome = document.createElement('td');
+            tdIncome.contentEditable = "true";
+            tdIncome.textContent = data.income;
+            tdIncome.classList.add('income-text');
+            
+            const tdExpense = document.createElement('td');
+            tdExpense.contentEditable = "true";
+            tdExpense.textContent = data.expense;
+            tdExpense.classList.add('expense-text');
+            
+            const tdComment = document.createElement('td');
+            tdComment.contentEditable = "true";
+            tdComment.textContent = data.comment;
+
+            tr.appendChild(tdDate);
+            tr.appendChild(tdIncome);
+            tr.appendChild(tdExpense);
+            tr.appendChild(tdComment);
+
+            // При вводе пересчитываем всё
+            tdIncome.addEventListener('input', calculateTotals);
+            tdExpense.addEventListener('input', calculateTotals);
+            tdDate.addEventListener('input', calculateTotals);
+            tdComment.addEventListener('input', calculateTotals);
+
+            tableBody.appendChild(tr);
+        }
+
+        function addRow() {
+            createRow();
+            saveData();
+        }
+
+        function clearTable() {
+            if (confirm("Ты точно хочешь удалить все записи?")) {
+                tableBody.innerHTML = '';
+                addRow(); 
+                saveData();
+            }
+        }
+
+        function calculateTotals() {
+            let totalIncome = 0;
+            let totalExpense = 0;
+            let totalRecords = 0;
+            let totalAllNumbers = 0;
+
+            const rows = tableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const dateText = row.cells[0].textContent.trim();
+                const incomeCell = row.cells[1].textContent;
+                const expenseCell = row.cells[2].textContent;
+                const commentText = row.cells[3].textContent.trim();
+
+                const incomeVal = parseFloat(incomeCell) || 0;
+                const expenseVal = parseFloat(expenseCell) || 0;
+
+                // Считаем количество заполненных строк (если есть хоть что-то)
+                if (dateText !== '' || incomeVal !== 0 || expenseVal !== 0 || commentText !== '') {
+                    totalRecords++;
+                }
+
+                totalIncome += incomeVal;
+                totalExpense += expenseVal;
+                // Сумма ВСЕХ чисел (доходы + расходы)
+                totalAllNumbers += (incomeVal + expenseVal);
+            });
+
+            const balance = totalIncome - totalExpense;
+
+            // Выводим основные данные
+            document.getElementById('total-income').textContent = totalIncome;
+            document.getElementById('total-expense').textContent = totalExpense;
+            document.getElementById('total-balance').textContent = balance;
+
+            // Выводим дополнительную статистику
+            document.getElementById('total-records').textContent = totalRecords;
+            document.getElementById('total-all-numbers').textContent = totalAllNumbers;
+
+            // Красим остаток
+            const balanceEl = document.getElementById('total-balance');
+            if (balance < 0) {
+                balanceEl.classList.add('value-minus');
+                balanceEl.classList.remove('value-balance');
+            } else {
+                balanceEl.classList.add('value-balance');
+                balanceEl.classList.remove('value-minus');
+            }
+
+            saveData();
+        }
+
+        // Сохранение
+        function saveData() {
+            const rows = tableBody.querySelectorAll('tr');
+            const data = [];
+
+            rows.forEach(row => {
+                data.push({
+                    date: row.cells[0].textContent,
+                    income: row.cells[1].textContent,
+                    expense: row.cells[2].textContent,
+                    comment: row.cells[3].textContent
+                });
+            });
+
+            localStorage.setItem('papaBankData', JSON.stringify(data));
+        }
+
+        // Загрузка
+        function loadData() {
+            const savedData = localStorage.getItem('papaBankData');
+            
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                data.forEach(rowData => createRow(rowData));
+            } else {
+                for (let i = 0; i < 10; i++) {
+                    createRow();
+                }
+            }
+            calculateTotals(); 
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
